@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Clinic{% endblock %}
+
+{% block content %}
+<div class="navbar">
+    <div class="logo">Sa:jhya</div>
+
+    <!-- Settings Dropdown -->
+    <div class="dropdown">
+        <button class="btn-gradient dropdown-toggle">⚙️ Function</button>
+        <div class="dropdown-menu">
+            <a href="{% url 'clinic-create-clinic' %}" class="dropdown-item">🏥 Add Clinic</a>
+            <a href="#" class="dropdown-item">📋 Manage Clinics</a>
+            <a href="#" class="dropdown-item">⚙️ Clinic Settings</a>
+            <a href="#" class="dropdown-item">👤 Dashboard</a>
+            <div class="dropdown-divider"></div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Clinic Table -->
+    {% if clinics %}
+    <div class="table-responsive">
+        <table class="patient-table">
+            <thead>
+                <tr>
+                    <th>Clinic Code</th>
+                    <th>Name</th>
+                    <th>PAN Number</th>
+                    <th>Contact</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for clinic in clinics %}
+                <tr>
+                    <td>{{ clinic.clinic_code }}</td>
+                    <td><strong>{{ clinic.clinic_name }}</strong></td>
+                    <td>{{ clinic.pan_number|default:"-" }}</td>
+                    <td>{{ clinic.phone|default:"-" }}</td>
+                    <td>{{ clinic.created_at|date:"Y-m-d"|default:"-" }}</td>
+                    <td>
+                        <a href="{% url 'clinic-detail' clinic.id %}" class="btn btn-info">View Details</a>
+                        {% comment %} <a href="#" class="btn btn-info">View Details</a> {% endcomment %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>No Clinics Found</h3>
+        <p>You haven't created any clinics yet.</p>
+        <a href="{% url 'clinic-create-clinic' %}" class="btn btn-primary" style="margin-top: 15px;">+ Add New Clinic</a>
+    </div>
+    {% endif %}
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dropdown = document.querySelector('.dropdown');
+    const dropdownToggle = document.querySelector('.dropdown-toggle');
+    
+    if (dropdown && dropdownToggle) {
+        // Toggle dropdown on button click
+        dropdownToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropdown.classList.toggle('open');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!dropdown.contains(e.target)) {
+                dropdown.classList.remove('open');
+            }
+        });
+        
+        // Close dropdown when an item is clicked
+        const dropdownItems = document.querySelectorAll('.dropdown-item');
+        dropdownItems.forEach(item => {
+            item.addEventListener('click', function() {
+                dropdown.classList.remove('open');
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ patient.patient_full_name }} - Patient Details</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .patient-title {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .patient-code {
+            color: #667eea;
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+
+        .diagnosis {
+            color: #666;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 8px;
+            font-size: 0.9rem;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #138496;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Modalities List */
+        .modalities-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .modality-badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+
+        /* Alert */
+        .alert {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #28a745;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #999;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="patient-title">👨‍⚕️ {{ patient.patient_full_name }}</h1>
+            <p class="patient-code">ID: {{ patient.enrollment_id|default:"Not assigned" }}</p>
+            <p class="patient-code">📞 {{ patient.contact_number|default:"No contact" }} | 🚻 {{ patient.get_gender_display|default:"Not specified" }}</p>
+            {% if patient.diagnosis %}
+            <p class="diagnosis"><strong>Diagnosis:</strong> {{ patient.diagnosis }}</p>
+            {% endif %}
+        </div>
+
+        <!-- Success Message -->
+        {% if messages %}
+        <div class="alert">
+            ✅ Treatment session saved successfully!
+        </div>
+        {% endif %}
+        
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('sessions')">📅 Exercise History</button>
+            <button class="tab-btn" onclick="switchTab('modalities')">⚡ Modalities Summary</button>
+            <button class="tab-btn" onclick="switchTab('progress')">📈 Progress Tracking</button>
+        </div>
+
+        <!-- Sessions Tab -->
+        <div id="sessions-tab" class="tab-content active">
+            {% if sessions %}
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Progress</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in sessions %}
+                    <tr>
+                        <td>{{ session.session_date|date:"Y-m-d H:i" }}</td>
+                        <td>{% if session.pain_level %}{{ session.pain_level }}/10{% else %}-{% endif %}</td>
+                        <td>
+                            {% if session.progress_status == 'much_better' %}🌟 Much Better
+                            {% elif session.progress_status == 'better' %}✅ Better
+                            {% elif session.progress_status == 'same' %}➡️ Same
+                            {% elif session.progress_status == 'worse' %}⚠️ Worse
+                            {% elif session.progress_status == 'much_worse' %}🔻 Much Worse
+                            {% else %}-{% endif %}
+                        </td>
+                        <td>
+                            <div class="modalities-list">
+                                {% for modality in session.modalities_list %}
+                                <span class="modality-badge">{{ modality.name }}</span>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td>{{ session.session_note|truncatechars:50|default:"-" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <h3>📭 No Sessions Yet</h3>
+                <p>Click "Add New Session" to record the first treatment session.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Modalities Tab -->
+        <div id="modalities-tab" class="tab-content">
+            <h3>⚡ Most Used Modalities</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Modality</th>
+                        <th>Frequency Used</th>
+                        <th>Last Used</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for modality in modality_stats %}
+                    <tr>
+                        <td>{{ modality.name }}</td>
+                        <td>{{ modality.count }} times</td>
+                        <td>{{ modality.last_used|date:"Y-m-d"|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center;">No modalities recorded yet</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Progress Tab -->
+        <div id="progress-tab" class="tab-content">
+            <h3>📊 Pain Level Trend</h3>
+            <div style="padding: 20px; background: #f8f9fa; border-radius: 10px; text-align: center;">
+                <p>Progress chart will appear here</p>
+                <small>Sessions: {{ sessions|length }} recorded</small>
+            </div>
+            
+            <h3 style="margin-top: 25px;">🔄 Progress Summary</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Session Date</th>
+                        <th>Pain Level</th>
+                        <th>Progress</th>
+                        <th>Next Session</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in sessions|slice:":10" %}
+                    <tr>
+                        <td>{{ session.session_date|date:"Y-m-d" }}</td>
+                        <td>{{ session.pain_level|default:"-" }}/10</td>
+                        <td>{{ session.get_progress_status_display|default:"-" }}</td>
+                        <td>{{ session.next_session|date:"Y-m-d"|default:"-" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center;">No progress data available</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
