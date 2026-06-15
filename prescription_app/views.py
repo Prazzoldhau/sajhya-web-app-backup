@@ -73,7 +73,8 @@ def save_treatment_session(request):
         with transaction.atomic():
             # Get patient (raises 404 if not found – will rollback)
             patient = get_object_or_404(AddPatient, id=data['patient_id'])
-            clinic_id = patient.origin_clinic.id
+            # clinic_id = patient.origin_clinic.id
+            clinic_id = patient.origin_clinic.id if patient.origin_clinic else None
             
             redirectTarget = data.get('redirect_to', 'exercise')  # default to exercise
             if redirectTarget == 'exercise':
