@@ -6,13 +6,13 @@ from django.db import models
 
 
 class TreatmentSession(models.Model):
-    PROGRESS_CHOICES = [
-        ('much_worse', 'Much worse'),
-        ('worse', 'Worse'),
-        ('same', 'Same'),
-        ('better', 'Better'),
-        ('much_better', 'Much better'),
-    ]
+    # PROGRESS_CHOICES = [
+    #     ('much_worse', 'Much worse'),
+    #     ('worse', 'Worse'),
+    #     ('same', 'Same'),
+    #     ('better', 'Better'),
+    #     ('much_better', 'Much better'),
+    # ]
     
     patient = models.ForeignKey(AddPatient, on_delete=models.CASCADE, related_name='sessions')
     session_number = models.PositiveIntegerField(default=0)
@@ -21,20 +21,21 @@ class TreatmentSession(models.Model):
 
     
     # Pre‑session assessment
-    pre_pain = models.PositiveSmallIntegerField(blank=True, null=True)  # 0‑10
-    pre_bp = models.CharField(max_length=20, blank=True, null=True)     # "120/80"
-    pre_hr = models.PositiveSmallIntegerField(blank=True, null=True)    # heart rate
-    pre_notes = models.TextField(blank=True, null=True)
+    # pre_pain = models.PositiveSmallIntegerField(blank=True, null=True)  # 0‑10 # remove
+    # pre_bp = models.CharField(max_length=20, blank=True, null=True)     # "120/80" #remove
+    # pre_hr = models.PositiveSmallIntegerField(blank=True, null=True)    # heart rate #remove
+    pre_notes = models.TextField(blank=True, null=True) #remove
+    # progress_status = models.CharField(max_length=20, choices=PROGRESS_CHOICES, blank=True, null=True) #remove
     
     # Post‑session assessment
-    post_pain = models.PositiveSmallIntegerField(blank=True, null=True)
-    progress_status = models.CharField(max_length=20, choices=PROGRESS_CHOICES, blank=True, null=True)
+    # post_pain = models.PositiveSmallIntegerField(blank=True, null=True) # remove
+    
     treatment_response = models.CharField(max_length=20, blank=True, null=True)  # "excellent", "good", etc.
-    post_remarks = models.TextField(blank=True, null=True)
+    # post_remarks = models.TextField(blank=True, null=True)
     
     # Follow‑up
-    follow_up_instructions = models.TextField(blank=True, null=True)
-    next_session = models.DateField(blank=True, null=True)
+    # follow_up_instructions = models.TextField(blank=True, null=True)#remove
+    # next_session = models.DateField(blank=True, null=True)#remove
     
     # Session notes (general)
     session_note = models.TextField(blank=True, null=True)

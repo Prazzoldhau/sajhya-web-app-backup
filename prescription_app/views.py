@@ -94,16 +94,16 @@ def save_treatment_session(request):
             session = TreatmentSession.objects.create(
                 patient=patient,
                 session_number=data['session_number'],
-                pre_pain=data.get('pre_pain'),
-                pre_bp=data.get('pre_bp'),
-                pre_hr=data.get('pre_hr'),
+                # pre_pain=data.get('pre_pain'),# remove
+                # pre_bp=data.get('pre_bp'), # remove
+                # pre_hr=data.get('pre_hr'),# remove
                 pre_notes=data.get('pre_notes'),
-                post_pain=data.get('post_pain'),
+                # post_pain=data.get('post_pain'),# remove
                 treatment_response=data.get('treatment_response'),
-                post_remarks=data.get('post_remarks'),
-                follow_up_instructions=data.get('follow_up_instructions'),
-                next_session=next_session,
-                session_note=data.get('session_note', ''),
+                # post_remarks=data.get('post_remarks'),# remove
+                # follow_up_instructions=data.get('follow_up_instructions'),# remove
+                # next_session=next_session,# remove
+                # session_note=data.get('session_note', ''),# remove
             )
             
             # Create modality junction records

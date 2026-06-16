@@ -83,11 +83,11 @@ def latest_prescription(request, patient_id):
     exercises_list = []
     for ex in latest_prescription.exercises.all().order_by('order'):
         exercises_list.append({
-            'id': ex.id,
+            # 'id': ex.id,
             'exercise_name': ex.exercise_name,
             'difficulty_level': ex.difficulty_level,
-            'sets': getattr(ex, 'sets', None),   # adjust to your through model
-            'reps': getattr(ex, 'reps', None),
+            # 'sets': getattr(ex, 'sets', None),   # adjust to your through model
+            # 'reps': getattr(ex, 'reps', None),
             'is_completed': getattr(ex, 'is_completed', False),
         })
     

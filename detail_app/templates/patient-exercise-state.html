@@ -382,9 +382,6 @@
                             <tr>
                                 <th style="width: 40px"></th>
                                 <th>Exercise Name</th>
-                                <th>Type</th>
-                                <th>Sets</th>
-                                <th>Reps</th>
                                 <th>Difficulty</th>
                                 <th>Status</th>
                             </tr>
@@ -400,9 +397,6 @@
                                            onchange="toggleExerciseCompletion({{ exercise.id }}, this)">
                                 </td>
                                 <td><strong>{{ exercise.exercise_name }}</strong></td>
-                                <td>{{ exercise.exercise_type|default:"General" }}</td>
-                                <td>{{ exercise.sets }}</td>
-                                <td>{{ exercise.reps }}</td>
                                 <td>
                                     <span class="difficulty difficulty-{{ exercise.difficulty_level }}">
                                         Level {{ exercise.difficulty_level }}
