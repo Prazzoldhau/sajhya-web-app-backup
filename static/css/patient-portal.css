@@ -15,8 +15,59 @@ body {
     max-width: 1200px;
     margin: 0 auto;
 }
+.exercise-thumbnail-large {
+    width: 280px !important;      /* wider than tall – adjust as you like */
+    height: 200px !important;      /* keep height fixed */
+    object-fit: cover !important;  /* fills the rectangle, crops top/bottom if needed */
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    display: block;
+    margin: 0 auto;                /* center horizontally */
+    background: #fafafa;
+}
 
-/* Header Styles */
+.exercise-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #2c3e50;
+    margin-bottom: 4px;
+    text-align: center;            /* 🆕 center the exercise name */
+}
+
+.no-image {
+    color: #aaa;
+    font-style: italic;
+    font-size: 0.9rem;
+    padding: 10px 0;
+    text-align: center;
+}
+
+.exercises-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.exercises-table td, .exercises-table th {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+    text-align: center;            /* 🆕 center all cell content by default */
+}
+.exercises-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    text-align: left;              /* keep headers left-aligned */
+}
+.exercises-table tr:hover {
+    background: #fafafa;
+}
+
+/* Responsive: smaller on phones */
+@media (max-width: 768px) {
+    .exercise-thumbnail-large {
+        width: 300px !important;    /* still wider than tall */
+        height: 240px !important;
+    }
+}
 .header {
     background: white;
     border-radius: 15px;

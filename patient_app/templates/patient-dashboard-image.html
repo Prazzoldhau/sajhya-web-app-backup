@@ -1,0 +1,109 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercise Prescriptions - {{ patient.patient_full_name }}</title>
+    <link rel="stylesheet" href="{% static 'css/patient-portal.css' %}"> 
+</head>
+<body>
+    <div class="container">    
+        <div class="header">
+            <div class="patient-info">
+                <div class="patient-details">
+                    <h1>{{ patient.patient_name }}</h1>
+                    <p><strong>Diagnosis:</strong> {{ patient.diagnosis|default:"Not specified" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prescriptions List -->
+        {% if latest_prescription %}
+            <div class="prescription-card" data-prescription-id="{{ latest_prescription.id }}">    
+                <div class="prescription-header" onclick="togglePrescription(0)">
+                    <div class="prescription-title">
+                        <h3>
+                            Prescription {{ latest_prescription.created_at|date:"F j, Y" }}
+                        </h3>
+                    </div>
+                    <div class="prescription-status">
+                        <span class="status-badge status-{{ latest_prescription.status|default:'active' }}">
+                            {{ latest_prescription.status|default:"Active"|title }}
+                        </span>
+                        <div style="display: flex; align-items: center;">
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-text">0/{{ exercises|length }}</span>
+                        </div>
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                </div>
+                
+                <div class="prescription-body" id="prescription-body-0">
+                    <table class="exercises-table">
+                        <thead>
+                            <tr>
+                                
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for exercise in exercises %}
+                            <tr>
+
+                                <td>
+                                    <div class="exercise-name">{{ exercise.exercise_name }}</div>
+                                    {% if exercise.exercise.exercise_url %}
+                                        <img src="{{ exercise.exercise.exercise_url }}" 
+                                            alt="{{ exercise.exercise_name }}" 
+                                            class="exercise-thumbnail-large">
+                                    {% else %}
+                                        <div class="no-image">No image</div>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 20px;">
+                                    No exercises assigned in this prescription.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    
+                    {% if latest_prescription.prescription_notes %}
+                    <div style="padding: 15px 25px; background: #e3f2fd; margin-top: 10px;">
+                        <strong>📋 Prescription Notes:</strong><br>
+                        {{ latest_prescription.prescription_notes }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h3>📋 No Prescriptions Yet</h3>
+                <p>You do not have any exercise prescriptions.</p>
+            </div>
+        {% endif %}
+    </div>
+    <script>
+        function togglePrescription(index) {
+            const body = document.getElementById(`prescription-body-${index}`);
+            const icon = body?.previousElementSibling?.querySelector('.toggle-icon');
+            if (body) body.classList.toggle('open');
+            if (icon) icon.classList.toggle('rotated');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const firstPrescription = document.getElementById('prescription-body-0');
+            if (firstPrescription) {
+                firstPrescription.classList.add('open');
+                const icon = document.querySelector('.prescription-header .toggle-icon');
+                if (icon) icon.classList.add('rotated');
+            }
+        });
+    </script>
+</body>
+</html>

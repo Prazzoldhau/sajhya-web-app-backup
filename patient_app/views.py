@@ -62,4 +62,6 @@ def patient_dashboard(request):
         'exercises': exercises, 
     }
     
-    return render(request, 'patient-dashboard.html', context)
+    return render(request, 'patient-dashboard-image.html', context)
+
+
