@@ -3,6 +3,11 @@ from personal_account.models import AddPatient
 from exercise_app.models import Prescription, PrescriptionExercise
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
+import json
+import sys
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 
 def patient_login(request):
     # If the browser sends a POST request (user clicked the button)
@@ -74,66 +79,89 @@ def patient_dashboard(request):
 
 # ==================== MOBILE API LOGIN ====================
 
-import json
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
 
 
-@csrf_exempt  # ✅ Disable CSRF for mobile API
-@require_http_methods(["POST"])  # ✅ Only allow POST
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
 def patient_api_login(request):
-    print("🔵 API Login called!")  # <-- Add this
     try:
-        data = json.loads(request.body)
-        print(f"📱 Received: {data}")  # <-- Add this
-        patient_code = data.get('username')
-        pin_input = data.get('password')
-        print(f"👤 Searching for: {patient_code} with PIN: {pin_input}")  # <-- Add this
-# def patient_api_login(request):
-#     try:
-#         # Parse the JSON request body from Android
-#         data = json.loads(request.body)
-#         patient_code = data.get('username')
-#         pin_input = data.get('password')
-    except json.JSONDecodeError:
-        return JsonResponse({
-            'success': False,
-            'error': 'Invalid JSON format'
-        }, status=400)
+        # ======================================================
+        # STEP 1: Parse JSON safely
+        # ======================================================
+        try:
+            # json.loads can accept bytes directly in Python 3.6+
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid JSON format. Please send valid JSON.'
+            }, status=400)
 
-    # Validate input
-    if not patient_code or not pin_input:
-        return JsonResponse({
-            'success': False,
-            'error': 'Username and password are required'
-        }, status=400)
+        # Get credentials and strip whitespace
+        patient_code = data.get('username', '').strip()
+        pin_input = data.get('password', '').strip()
 
-    try:
-        patient = AddPatient.objects.get(patient_code=patient_code)
-    except AddPatient.DoesNotExist:
-        return JsonResponse({
-            'success': False,
-            'error': 'Invalid credentials'
-        }, status=401)
+        # ======================================================
+        # STEP 2: Validate input
+        # ======================================================
+        if not patient_code or not pin_input:
+            return JsonResponse({
+                'success': False,
+                'error': 'Username and password are required'
+            }, status=400)
 
-    # ⚠️ IMPORTANT: Replace this with hashed PIN check in production!
-    # For now, plain text comparison (internal testing only)
-    if patient.patient_contact == pin_input:
-        # ✅ Set session (so web and mobile can share session if needed)
-        request.session['patient_id'] = patient.id
+        # ======================================================
+        # STEP 3: Find patient in database
+        # ======================================================
+        try:
+            patient = AddPatient.objects.get(patient_code=patient_code)
+        except AddPatient.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid credentials'
+            }, status=401)
+
+        # ======================================================
+        # STEP 4: Verify PIN (FOR TESTING - Plain text)
+        # ⚠️ REPLACE WITH HASHED PIN IN PRODUCTION
+        # ======================================================
+        if patient.patient_contact == pin_input:
+            # Set session (so web and mobile share login state)
+            request.session['patient_id'] = patient.id
+            
+            # Get the correct patient name field from your model
+            # Try multiple possible field names (adjust to your actual model)
+            patient_name = getattr(patient, 'patient_name', None)
+            if not patient_name:
+                patient_name = getattr(patient, 'patient_full_name', 'Patient')
+            
+            return JsonResponse({
+                'success': True,
+                'patient_id': patient.id,
+                'patient_name': patient_name,
+                'patient_code': patient.patient_code,
+                'message': 'Login successful'
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid credentials'
+            }, status=401)
+
+    # ======================================================
+    # CATCH ANY UNEXPECTED ERROR (Prevents HTML 500 page)
+    # ======================================================
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
         
-        # ✅ Return JSON response for Android
-        return JsonResponse({
-            'success': True,
-            'patient_id': patient.id,
-            'patient_name': patient.patient_name,
-            'patient_code': patient.patient_code,
-            'message': 'Login successful'
-        })
-    else:
+        # Log the full error to your Django log file (if configured)
+        # If logging isn't configured, it will just return JSON
+        print(f"❌ API Login Error: {error_details}", file=sys.stderr)
+        
         return JsonResponse({
             'success': False,
-            'error': 'Invalid credentials'
-        }, status=401)
-
-
+            'error': f'Server error: {str(e)}'
+        }, status=500)
