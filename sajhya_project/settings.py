@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main',
+    'corsheaders',
     'account_app',
     'personal_account',
     'clinic_account',
@@ -49,6 +50,7 @@ INSTALLED_APPS = [
     'video_app',
     'patient_app',
     'prescription_app',
+    'upload_app',
 
 ]
 
@@ -131,3 +133,9 @@ MEDIA_ROOT = BASE_DIR / 'media'   # Creates 'media' folder in your project root
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Increase global Django limits (prevents "too large" errors)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 200 * 1024 * 1024  # 200 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 200 * 1024 * 1024  # 200 MB
+
+# Optional: Restrict file uploads to APK only (enforced at view level too)
+ALLOWED_APK_MIME_TYPES = ['application/vnd.android.package-archive']

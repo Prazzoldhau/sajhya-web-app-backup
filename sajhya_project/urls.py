@@ -16,6 +16,7 @@ urlpatterns = [
     path ('video-app/', include('video_app.urls')),
     path ('prescription-app/', include('prescription_app.urls')),
     path ('patient-app/', include('patient_app.urls')),
+    path ('upload-app/', include('upload_app.urls')),
 
 ]
 

@@ -13,3 +13,4 @@ pytz==2026.2
 sqlparse==0.5.5
 tablib==3.9.0
 tzdata==2026.2
+django-cors-headers==4.9.0
