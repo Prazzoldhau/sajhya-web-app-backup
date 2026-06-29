@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from datetime import date
 from personal_account.models import AddPatient, Clinic
-from exercise_app.models import Prescription,PrescriptionExercise
+from exercise_app.models import Prescription, PrescriptionExercise, ExerciseFeedback
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 import json
@@ -59,13 +59,21 @@ def patient_exercise_status(request, patient_id):
         today = date.today()
         is_active = (prescription.status == 'active')
         
+        exercises_with_feedback = []
+        for ex in exercises:
+            feedback_logs = ex.feedback_logs.order_by('-logged_at')[:5]
+            exercises_with_feedback.append({
+                'exercise': ex,
+                'feedback_logs': feedback_logs,
+            })
+
         prescriptions_data.append({
             'prescription': prescription,
             'exercises': exercises,
+            'exercises_with_feedback': exercises_with_feedback,
             'total_exercises': total_exercises,
             'completed_exercises': completed_exercises,
             'is_active': is_active,
-            
         })
     
     context = {
@@ -148,3 +156,37 @@ def toggle_exercise_completion(request, exercise_id):
         return JsonResponse({'success': False, 'error': 'Exercise not found'}, status=404)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    
+    
+@csrf_exempt
+@require_http_methods(["POST"])
+def update_exercise_params(request, exercise_id):
+    try:
+        exercise = PrescriptionExercise.objects.get(id=exercise_id)
+        data = json.loads(request.body)
+
+        exercise.sets = int(data.get('sets', exercise.sets))
+        exercise.reps = int(data.get('reps', exercise.reps))
+        exercise.hold_time_sec = int(data.get('hold_time_sec', exercise.hold_time_sec))
+        exercise.rest_time_sec = int(data.get('rest_time_sec', exercise.rest_time_sec))
+        exercise.save(update_fields=['sets', 'reps', 'hold_time_sec', 'rest_time_sec', 'updated_at'])
+
+        return JsonResponse({
+            'success': True,
+            'sets': exercise.sets,
+            'reps': exercise.reps,
+            'hold_time_sec': exercise.hold_time_sec,
+            'rest_time_sec': exercise.rest_time_sec,
+        })
+    except PrescriptionExercise.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Exercise not found'}, status=404)
+    except (ValueError, TypeError) as e:
+        return JsonResponse({'success': False, 'error': f'Invalid value: {e}'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+def refer_to(request, patient_id):
+    patient = get_object_or_404(AddPatient, id=patient_id)
+    
+    return render (request, 'refer.html', {'patient': patient})

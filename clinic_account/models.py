@@ -48,7 +48,7 @@ class Clinic(models.Model):
     
     
     def __str__(self):
-        return self.name
+        return self.clinic_name
     
 class ClinicPhysio(models.Model):
     """Relationship between a clinic and a physio (who is a personal user)"""

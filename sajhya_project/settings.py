@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'patient_app',
     'prescription_app',
     'upload_app',
+    'referral_app',
 
 ]
 

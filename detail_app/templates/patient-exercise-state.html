@@ -396,21 +396,31 @@
                             <tr>
                                 <th style="width: 40px"></th>
                                 <th>Exercise Name</th>
+                                <th>Sets</th>
+                                <th>Reps</th>
+                                <th>Hold (s)</th>
+                                <th>Rest (s)</th>
                                 <th>Difficulty</th>
                                 <th>Status</th>
+                                <th style="width: 60px"></th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for exercise in prescription_data.exercises %}
-                            <tr>
+                            {% for item in prescription_data.exercises_with_feedback %}
+                            {% with exercise=item.exercise %}
+                            <tr id="exercise-row-{{ exercise.id }}">
                                 <td>
-                                    <input type="checkbox" 
-                                           class="checkbox-complete" 
+                                    <input type="checkbox"
+                                           class="checkbox-complete"
                                            data-exercise-id="{{ exercise.id }}"
                                            {% if exercise.is_completed %}checked{% endif %}
                                            onchange="toggleExerciseCompletion({{ exercise.id }}, this)">
                                 </td>
                                 <td><strong>{{ exercise.exercise_name }}</strong></td>
+                                <td class="dose-cell" data-field="sets">{{ exercise.sets }}</td>
+                                <td class="dose-cell" data-field="reps">{{ exercise.reps }}</td>
+                                <td class="dose-cell" data-field="hold_time_sec">{{ exercise.hold_time_sec }}</td>
+                                <td class="dose-cell" data-field="rest_time_sec">{{ exercise.rest_time_sec }}</td>
                                 <td>
                                     <span class="difficulty difficulty-{{ exercise.difficulty_level }}">
                                         Level {{ exercise.difficulty_level }}
@@ -423,14 +433,39 @@
                                         <span class="exercise-pending">○ Pending</span>
                                     {% endif %}
                                 </td>
+                                <td>
+                                    <button class="btn-edit" onclick="startEdit({{ exercise.id }})" title="Edit doses">✏️</button>
+                                    {% if item.feedback_logs %}
+                                    <button class="btn-feedback-toggle" onclick="toggleFeedbackLog({{ exercise.id }})" title="View feedback">💬</button>
+                                    {% endif %}
+                                </td>
                             </tr>
+
+                            {% if item.feedback_logs %}
+                            <tr class="feedback-log-row" id="feedback-log-{{ exercise.id }}" style="display:none;">
+                                <td colspan="9" class="feedback-log-cell">
+                                    <div class="feedback-log-header">Patient Feedback (last {{ item.feedback_logs|length }})</div>
+                                    {% for log in item.feedback_logs %}
+                                    <div class="feedback-log-entry {% if log.feedback_type == 'painful' or log.feedback_type == 'increased_symptom' %}feedback-alert{% endif %}">
+                                        <span class="fb-date">{{ log.logged_at|date:"M j, g:i a" }}</span>
+                                        <span class="fb-type fb-type-{{ log.feedback_type }}">{{ log.get_feedback_type_display }}</span>
+                                        {% if log.note %}
+                                        <span class="fb-note">"{{ log.note }}"</span>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                            {% endif %}
+
                             {% if exercise.exercise_notes %}
                             <tr>
-                                <td colspan="7" style="background: #fff3cd; padding: 10px 15px;">
+                                <td colspan="9" style="background: #fff3cd; padding: 10px 15px;">
                                     <strong>📝 Note:</strong> {{ exercise.exercise_notes }}
                                 </td>
                             </tr>
                             {% endif %}
+                            {% endwith %}
                             {% endfor %}
                         </tbody>
                     </table>
@@ -465,6 +500,95 @@
         .difficulty-3 { background: #ff9800; color: white; }
         .difficulty-4 { background: #f44336; color: white; }
         .difficulty-5 { background: #9c27b0; color: white; }
+
+        .btn-edit {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .btn-edit:hover { background: #e8eaf6; }
+
+        .dose-input {
+            width: 54px;
+            padding: 3px 5px;
+            border: 1px solid #667eea;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .inline-actions {
+            display: flex;
+            gap: 4px;
+        }
+        .btn-save {
+            background: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 3px 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .btn-cancel-edit {
+            background: #9e9e9e;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 3px 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .btn-feedback-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .btn-feedback-toggle:hover { background: #e8f5e9; }
+
+        .feedback-log-cell {
+            background: #fafafa;
+            padding: 12px 20px;
+            border-top: 1px dashed #e0e0e0;
+        }
+        .feedback-log-header {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .feedback-log-entry {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            padding: 5px 8px;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            background: white;
+            border: 1px solid #f0f0f0;
+        }
+        .feedback-log-entry.feedback-alert {
+            background: #fff3e0;
+            border-color: #ffcc80;
+        }
+        .fb-date { font-size: 0.78rem; color: #999; min-width: 110px; }
+        .fb-type { font-size: 0.82rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+        .fb-type-normal           { background: #e8f5e9; color: #2e7d32; }
+        .fb-type-hard             { background: #fff9c4; color: #f57f17; }
+        .fb-type-painful          { background: #ffebee; color: #c62828; }
+        .fb-type-increased_symptom { background: #fce4ec; color: #880e4f; }
+        .fb-note { font-size: 0.82rem; color: #555; font-style: italic; }
     </style>
 
     <script>
@@ -595,6 +719,88 @@
                 }
             }
             return cookieValue;
+        }
+
+        function toggleFeedbackLog(exerciseId) {
+            const row = document.getElementById(`feedback-log-${exerciseId}`);
+            if (row) row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+        }
+
+        function startEdit(exerciseId) {
+            const row = document.getElementById(`exercise-row-${exerciseId}`);
+            const doseCells = row.querySelectorAll('.dose-cell');
+            const editBtn = row.querySelector('.btn-edit');
+
+            // Swap each dose cell to an input
+            doseCells.forEach(cell => {
+                const field = cell.dataset.field;
+                const current = cell.textContent.trim();
+                cell.innerHTML = `<input class="dose-input" type="number" min="0" data-field="${field}" value="${current}">`;
+            });
+
+            // Swap edit button to save/cancel
+            editBtn.style.display = 'none';
+            const actionCell = editBtn.parentElement;
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'inline-actions';
+            actionsDiv.id = `inline-actions-${exerciseId}`;
+            actionsDiv.innerHTML = `
+                <button class="btn-save" onclick="saveEdit(${exerciseId})">Save</button>
+                <button class="btn-cancel-edit" onclick="cancelEdit(${exerciseId})">✕</button>
+            `;
+            actionCell.appendChild(actionsDiv);
+        }
+
+        function cancelEdit(exerciseId) {
+            const row = document.getElementById(`exercise-row-${exerciseId}`);
+            const doseCells = row.querySelectorAll('.dose-cell');
+
+            doseCells.forEach(cell => {
+                const input = cell.querySelector('input');
+                if (input) cell.textContent = input.defaultValue;
+            });
+
+            const actionsDiv = document.getElementById(`inline-actions-${exerciseId}`);
+            if (actionsDiv) actionsDiv.remove();
+            row.querySelector('.btn-edit').style.display = '';
+        }
+
+        async function saveEdit(exerciseId) {
+            const row = document.getElementById(`exercise-row-${exerciseId}`);
+            const inputs = row.querySelectorAll('.dose-input');
+            const payload = {};
+            inputs.forEach(input => { payload[input.dataset.field] = input.value; });
+
+            try {
+                const response = await fetch(`/detail-app/api/exercise/${exerciseId}/update-params/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+
+                if (!data.success) {
+                    alert(data.error || 'Failed to save');
+                    return;
+                }
+
+                // Update cells with returned values
+                row.querySelectorAll('.dose-cell').forEach(cell => {
+                    const field = cell.querySelector('input').dataset.field;
+                    cell.textContent = data[field];
+                });
+
+                const actionsDiv = document.getElementById(`inline-actions-${exerciseId}`);
+                if (actionsDiv) actionsDiv.remove();
+                row.querySelector('.btn-edit').style.display = '';
+
+            } catch (err) {
+                console.error(err);
+                alert('Error saving. Please try again.');
+            }
         }
 
         // Open first prescription by default

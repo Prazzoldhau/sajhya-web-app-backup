@@ -70,6 +70,7 @@ class ExerciseMain(models.Model):
     default_sets = models.IntegerField()
     default_reps = models.IntegerField()
     hold_time_sec = models.IntegerField()
+    default_rest_time_sec = models.IntegerField(default=60)
 
     exercise_description = models.CharField(max_length=500)
     exercise_url = models.URLField(null=True, blank=True)
@@ -182,11 +183,11 @@ class PrescriptionExercise(models.Model):
     # exercise_type = models.CharField(max_length=100, blank=True, null=True)
     difficulty_level = models.IntegerField(choices=DIFFICULTY_CHOICES, default=1)
     
-    # # Exercise parameters (can be customized per prescription)
-    # sets = models.IntegerField(default=3)
-    # reps = models.IntegerField(default=10)
-    # hold_time_sec = models.IntegerField(default=0, help_text="Hold time in seconds for isometric exercises")
-    # rest_time_sec = models.IntegerField(default=60, help_text="Rest time between sets in seconds")
+     # Exercise parameters (can be customized per prescription)
+    sets = models.IntegerField(default=3)
+    reps = models.IntegerField(default=10)
+    hold_time_sec = models.IntegerField(default=0, help_text="Hold time in seconds for isometric exercises")
+    rest_time_sec = models.IntegerField(default=60, help_text="Rest time between sets in seconds")
     
     # # Additional notes for this specific exercise
     # exercise_notes = models.TextField(blank=True, null=True)
@@ -213,9 +214,8 @@ class PrescriptionExercise(models.Model):
     def __str__(self):
         return f"{self.exercise_name}"
     
-    # def get_total_reps(self):
-    #     """Calculate total repetitions across all sets"""
-    #     return self.sets * self.reps
+    def get_total_reps(self):
+        return self.sets * self.reps
     
     # def get_duration_minutes(self):
     #     """Estimate total duration for this exercise in minutes"""
@@ -248,3 +248,28 @@ class PrescriptionExercise(models.Model):
                 'description': getattr(self.exercise, 'exercise_description', '')
             }
         return None
+
+
+class ExerciseFeedback(models.Model):
+    FEEDBACK_CHOICES = [
+        ('normal', 'Normal'),
+        ('hard', 'Hard'),
+        ('painful', 'Painful'),
+        ('increased_symptom', 'Increased Symptom'),
+    ]
+
+    prescription_exercise = models.ForeignKey(
+        PrescriptionExercise,
+        on_delete=models.CASCADE,
+        related_name='feedback_logs'
+    )
+    feedback_type = models.CharField(max_length=30, choices=FEEDBACK_CHOICES)
+    note = models.CharField(max_length=300, blank=True, default='')
+    logged_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'exercise_feedback'
+        ordering = ['-logged_at']
+
+    def __str__(self):
+        return f"{self.prescription_exercise.exercise_name} — {self.feedback_type}"

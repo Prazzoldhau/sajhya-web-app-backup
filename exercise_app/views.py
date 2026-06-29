@@ -109,17 +109,15 @@ def submit_prescription(request):
             
             PrescriptionExercise.objects.create(
                 prescription=prescription,
-                exercise=exercise_obj,  # Can be None if exercise was deleted from library
+                exercise=exercise_obj,
                 exercise_id_in_library=exercise_id,
                 exercise_name=ex_data.get('exercise_name', 'Unknown Exercise'),
                 difficulty_level=ex_data.get('difficulty_level', 1),
-                order=index
-                # exercise_type=ex_data.get('exercise_type', 'General'),
-                # sets=ex_data.get('custom_sets') or ex_data.get('default_sets', 3),
-                # reps=ex_data.get('custom_reps') or ex_data.get('default_reps', 10),
-                # hold_time_sec=ex_data.get('hold_time_sec', 0),
-                # exercise_notes=ex_data.get('notes', ''),
-                
+                order=index,
+                sets=exercise_obj.default_sets if exercise_obj else 3,
+                reps=exercise_obj.default_reps if exercise_obj else 10,
+                hold_time_sec=exercise_obj.hold_time_sec if exercise_obj else 0,
+                rest_time_sec=exercise_obj.default_rest_time_sec if exercise_obj else 60,
             )
         
         return JsonResponse({
@@ -252,7 +250,11 @@ def reassign_exercise(request, patient_id):
                 exercise_id_in_library=old_pe.exercise_id_in_library,
                 exercise_name=old_pe.exercise_name,
                 difficulty_level=old_pe.difficulty_level,
-                order=old_pe.order
+                order=old_pe.order,
+                sets=old_pe.sets,
+                reps=old_pe.reps,
+                hold_time_sec=old_pe.hold_time_sec,
+                rest_time_sec=old_pe.rest_time_sec,
             )
 
 

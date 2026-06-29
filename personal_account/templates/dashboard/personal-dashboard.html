@@ -16,8 +16,14 @@
                 <a href="{% url 'create-patient'%}" class="dropdown-item">
                     🏥 Add Patient
                 </a>
-                <a href="#" class="dropdown-item">
-                    📋 Manage Patient
+                <a href="{% url 'create-referral' %}" class="dropdown-item">
+                    📤 Send Referral
+                </a>
+                <a href="{% url 'search-referral' %}" class="dropdown-item">
+                    🔍 Find Referral
+                </a>
+                <a href="{% url 'my-referrals' %}" class="dropdown-item">
+                    📋 My Referrals
                 </a>
                 <a href="#" class="dropdown-item">
                     👤 Profile Settings

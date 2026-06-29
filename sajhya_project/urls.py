@@ -17,6 +17,7 @@ urlpatterns = [
     path ('prescription-app/', include('prescription_app.urls')),
     path ('patient-app/', include('patient_app.urls')),
     path ('upload-app/', include('upload_app.urls')),
+    path ('referral/', include('referral_app.urls')),
 
 ]
 

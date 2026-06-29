@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from personal_account.models import AddPatient
-from exercise_app.models import Prescription, PrescriptionExercise
+from exercise_app.models import Prescription, PrescriptionExercise, ExerciseFeedback
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 import json
@@ -29,8 +29,13 @@ def patient_api_me(request):
                 'prescription_notes': notes,
                 'exercises': [
                     {
+                        'id': ti.id,
                         'exercise_name': ti.exercise.exercise_name,
                         'exercise_url': request.build_absolute_uri(ti.exercise.exercise_url) if ti.exercise.exercise_url else None,
+                        'sets': ti.sets,
+                        'reps': ti.reps,
+                        'hold_time_sec': ti.hold_time_sec,
+                        'rest_time_sec': ti.rest_time_sec,
                     } for ti in through_instances
                 ]
             }
@@ -151,8 +156,13 @@ def patient_api_login(request):
                 'prescription_notes': notes,
                 'exercises': [
                     {
+                        'id': ti.id,
                         'exercise_name': ti.exercise.exercise_name,
                         'exercise_url': request.build_absolute_uri(ti.exercise.exercise_url) if ti.exercise.exercise_url else None,
+                        'sets': ti.sets,
+                        'reps': ti.reps,
+                        'hold_time_sec': ti.hold_time_sec,
+                        'rest_time_sec': ti.rest_time_sec,
                     } for ti in through_instances
                 ]
             }
@@ -178,8 +188,44 @@ def patient_api_login(request):
         return JsonResponse({'success': False, 'error': 'Invalid credentials'}, status=401)
     except Exception as e:
         import traceback
-        # Log to server logs (avoid print to stdout)
         import logging
         logger = logging.getLogger(__name__)
         logger.error(traceback.format_exc())
         return JsonResponse({'success': False, 'error': f'Server error: {str(e)}'}, status=500)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def submit_exercise_feedback(request, exercise_id):
+    patient_id = request.session.get('patient_id')
+    if not patient_id:
+        return JsonResponse({'success': False, 'error': 'Not authenticated'}, status=401)
+
+    try:
+        exercise = PrescriptionExercise.objects.select_related('prescription__patient').get(id=exercise_id)
+
+        if exercise.prescription.patient.id != patient_id:
+            return JsonResponse({'success': False, 'error': 'Forbidden'}, status=403)
+
+        data = json.loads(request.body)
+        feedback_type = data.get('feedback_type', '').strip()
+        note = data.get('note', '').strip()
+
+        valid_types = [c[0] for c in ExerciseFeedback.FEEDBACK_CHOICES]
+        if feedback_type not in valid_types:
+            return JsonResponse({'success': False, 'error': 'Invalid feedback type'}, status=400)
+
+        ExerciseFeedback.objects.create(
+            prescription_exercise=exercise,
+            feedback_type=feedback_type,
+            note=note,
+        )
+
+        return JsonResponse({'success': True})
+
+    except PrescriptionExercise.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Exercise not found'}, status=404)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
